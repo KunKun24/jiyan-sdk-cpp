@@ -1,0 +1,10 @@
+build/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+crypto_vectors
+.DS_Store
+.idea/
+.vscode/

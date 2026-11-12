@@ -1,0 +1,41 @@
+name: Bug report
+description: 报告编译错误、算法不符合标准向量或运行异常｜Compile errors, wrong vectors, crashes
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        漏洞请不要公开提交，见 SECURITY.md。
+        For security issues, do not open a public issue.
+  - type: input
+    id: version
+    attributes:
+      label: SDK version
+      placeholder: "1.8.0"
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform / compiler
+      placeholder: "Android NDK r26 / g++ 13 / MSVC 2022"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: 实际结果与期望结果
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: 最小复现代码或步骤；不要包含真实密钥
+      render: cpp
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      render: shell

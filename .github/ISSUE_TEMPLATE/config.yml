@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 官方文档 / Documentation
+    url: https://jiyan.xn--0try77c6um82w.cn/docs.html
+    about: 接口、错误码、加密与签名说明
+  - name: Telegram
+    url: https://t.me/sad1881
+    about: 接入咨询与安全问题
