@@ -90,3 +90,17 @@ Cloud-control binding failures do not set `Data.code`; the binding function retu
 3. An empty device ID breaks validation and cloud control. Confirm that `set_device_id` is called before `init` and that the value is stable.
 4. Two consecutive heartbeat failures lock the library and `is_locked()` becomes true. After fixing the network, validate the card again.
 5. Never log full keys, card keys or account credentials. When comparison is needed, log only lengths and digests.
+
+## Minimal Error Handling
+
+```cpp
+bool ok = false;
+std::string message;
+JiYanSDK_API::卡密验证::使用卡密("YOUR-CARD-KEY", ok, message);
+if (!ok) {
+    const auto& r = JiYanSDK_Result::Data;
+    // r.code: -1 / 1002 / 1003 / 9999 or a server business code
+    // r.message: displayable; r.raw is the decrypted response body
+    std::cerr << "code=" << r.code << ", message=" << r.message << "\n";
+}
+```

@@ -90,3 +90,17 @@ HTTP 层失败时 `code=-1`，`message` 形如 `HTTP <状态码> - <中文提示
 3. 设备码为空会导致验证与云控异常，先确认 `set_device_id` 在 `init` 前调用且值稳定。
 4. 心跳连续失败两次会把库置为锁定状态，`is_locked()` 为真；处理完网络问题后重新验证卡密。
 5. 日志中不要打印完整密钥、卡密或账号；需要比对时只打印长度与摘要。
+
+## 最小错误处理
+
+```cpp
+bool ok = false;
+std::string message;
+JiYanSDK_API::卡密验证::使用卡密("YOUR-CARD-KEY", ok, message);
+if (!ok) {
+    const auto& r = JiYanSDK_Result::Data;
+    // r.code：-1 / 1002 / 1003 / 9999 或服务端业务码
+    // r.message：可直接展示；r.raw 为解密后的响应原文
+    std::cerr << "code=" << r.code << ", message=" << r.message << "\n";
+}
+```

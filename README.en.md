@@ -30,7 +30,7 @@ No OpenSSL, libsodium or libcurl required.
 - **Encryption 0–8**: none, AES-256-CBC, custom Base64, EnvProto, JiYan-Seal,
   AES-CBC+HMAC, AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305
 - **Signature 0–14**: MD5/SHA family, HMAC-SHA256, double HMAC, keyed BLAKE2b
-- **Heartbeat**: dedicated thread, 10s interval, replay protection
+- **Heartbeat**: dedicated thread, interval configured by the server (minutes), replay protection
 - **Cloud control / cloud update / peer detection**
 - **Chinese API** (`JiYanSDK_API::卡密验证::使用卡密`) and classic C++ API
 - **No third-party runtime deps** — bundled nlohmann/json (MIT)
@@ -60,7 +60,9 @@ JiYanSDK::set_api_url("http://api.xn--0try77c6um82w.cn/api/");
 ```
 
 ```cpp
-bool ok = JiYanSDK_API::卡密验证::使用卡密("CARD-KEY");
+bool ok = false;
+std::string msg;
+JiYanSDK_API::卡密验证::使用卡密("CARD-KEY", ok, msg, nullptr);
 ```
 
 See [`examples/`](examples/) for full snippets.
@@ -81,10 +83,12 @@ See [`examples/`](examples/) for full snippets.
 
 Signature IDs 12/13/14 are HMAC-SHA256, double HMAC and keyed BLAKE2b-256
 (`key = SHA256(sign_key)`, 64 lowercase hex chars).
-Key rule: strict Base64 first; if it decodes to ≥16 bytes use it, else use the raw
-string padded/truncated to 32 bytes.
+Key rule (encryption 6/7/8): strict Base64 first; if it decodes to ≥16 bytes use it,
+else use the raw string padded/truncated to 32 bytes. Encryption 1 uses lenient Base64;
+encryption 3 derives the key from `Account_Uid`; signature 14 uses `SHA256(sign_key)`.
 
-Encryption 5–8 and signatures 13–14 require a server-side membership plan.
+Encryption 5–8 and signatures 13–14 require a server-side membership plan; the client
+does not enforce it locally.
 
 ## Build & test
 

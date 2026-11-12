@@ -1,6 +1,6 @@
 # Cloud Control and Cloud Update
 
-Cloud control and cloud update are separate features. Cloud control pulls remote switches, announcements and button commands from `cloud-client.php`; cloud update checks published files, obtains a download URL and submits a receipt through `Cloudupdate.php`. Both require a validated card session and a non-empty device ID. The server internals are not part of the open-source scope; this page describes client behavior only, and field semantics follow the source.
+Cloud control and cloud update are separate features. Cloud control pulls remote switches, announcements and button commands from `cloud-client.php`; cloud update checks published files, obtains a download URL and submits a receipt through `Cloudupdate.php`. Both use the same account and app configuration. Cloud control requires a validated card session and a non-empty device ID; cloud update also requires a non-empty device ID when obtaining a download URL. The server internals are not part of the open-source scope; this page describes client behavior only, and field semantics follow the source.
 
 ## Cloud Control: Bindings
 
@@ -40,7 +40,7 @@ void BindCloudControl() {
 
 ## Cloud Control: Update Loop
 
-Call `JiYanSDK_API::云控::更新()` once per frame from the render or main loop. On the first call with at least one binding, the client starts a background worker. While the card is not verified, the identity is not ready, or `Shutdown()` has run, the call returns without any network traffic. The worker fetches and parses; button callbacks run on the thread that calls `更新()`.
+Call `JiYanSDK_API::云控::更新()` once per frame from the render or main loop. Once the card is verified, the identity is ready and at least one binding exists, the first call starts a background worker. While the card is not verified, the identity is not ready, or `Shutdown()` has run, the call returns without any network traffic. The worker fetches and parses; button callbacks run on the thread that calls `更新()`.
 
 ```cpp
 void OnFrame() {
@@ -78,7 +78,7 @@ RemoteConfig::GetInstance().Shutdown();
 | `CloudUpdate::CheckVersionByMD5(name, md5)` | Sync | Explicit local MD5, must be 32 hex characters |
 | `CloudUpdate::CheckVersionByVersionSync(version)` | Sync | Server-side version comparison |
 
-The result is `Cloud_Update_Result` with `request_ok`, `message` and `cloud`. `cloud` carries `need_update`, `has_file`, `file_id`, `file_name`, `file_size`, `latest_md5`, `version`, `download_url`, `ticket`, `source` and `update_content`. `source` is `local` when the file is hosted by the server and needs a ticket, or `remote` for an external link.
+The result is `Cloud_Update_Result` with `request_ok`, `message` and `cloud`. `cloud` carries `need_update`, `has_file`, `file_id`, `file_name`, `file_size`, `latest_md5`, `version`, `download_url`, `ticket`, `source` and `update_content`. `source` is `local` or `remote`; `local` requires both `ticket` and `md5`. The client validates the fields the server returns and does not infer file locations.
 
 ```cpp
 Cloud_Download_Result PrepareDownload(const std::string& so_name) {

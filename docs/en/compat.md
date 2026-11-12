@@ -8,9 +8,9 @@ This page summarizes the differences between SDK 1.8 and earlier versions, the s
 | --- | --- | --- | --- | --- |
 | 1.8 | 2026-11 or later | 0–8 | 0–14 | Current release, adds 6/7/8 and 14 |
 | 1.7 | 2026-09 or later | 0–5 | 0–13 | Interface unchanged, still usable |
-| 1.2–1.6 | Matching older servers | 0–5 | 0–13 | Compatible, upgrade recommended |
+| 1.2–1.6 | Matching older servers | Per server configuration | Per server configuration | Compatible, upgrade recommended |
 
-A server upgrade does not force old clients to upgrade. Encryption 6/7/8 and signature 14 require client 1.8 or later and a server that has enabled those algorithms. The 1.8 interface, parameters and return structures are unchanged; upgrading mainly means recompiling and running regression tests.
+The README lists an algorithm range only for 1.7 (0–5 / 0–13); it does not enumerate 1.2–1.6 per version. Treat the matching server configuration and the old source as authoritative for those releases. A server upgrade does not force old clients to upgrade. Encryption 6/7/8 and signature 14 require client 1.8 or later and a server that has enabled those algorithms. The 1.8 interface, parameters and return structures are unchanged; upgrading mainly means recompiling and running regression tests.
 
 ## Differences Between 1.8 and 1.2–1.7
 
@@ -18,7 +18,7 @@ A server upgrade does not force old clients to upgrade. Encryption 6/7/8 and sig
 - New implementations `AES256GCM.cpp`, `ChaCha20Poly1305.cpp`, `BLAKE2b`, plus fixed-vector tests in `tests/crypto_vectors.cpp`.
 - New `JiYan_Key32` key handling for encryption 6/7/8 only: strict Base64 decode, use the decoded bytes when at least 16 bytes long, otherwise use the raw string, then pad with zeros or truncate to 32 bytes.
 - Algorithm bounds extend from 5/13 to 8/14; out-of-range configuration raises `加密或签名方式编号非法`.
-- Response validation is stricter: duplicate JSON keys, `rc` echo and cloud-control identity binding all produce 1003.
+- Response validation is stricter: duplicate JSON keys, `rc` echo and cloud control identity binding all produce 1003.
 - Encryption 5–8 and signature 13–14 are server-side membership features; the client does not check permissions.
 
 Heartbeat behavior is inconsistent between the documentation and the source. The README and CHANGELOG describe a 10-second interval, while `SDK_Heartbeat.cpp` waits with `std::chrono::minutes(interval)` and may overwrite the interval from `heartbeat_interval` (minutes) after a success. During an upgrade, trust the source and the integration test rather than the README alone.
@@ -58,6 +58,15 @@ The source uses POSIX sockets, `dladdr` and `/proc/self/maps`, and requires JNI 
 
 `Enable_SingleThreaded()` makes requests synchronous, which suits consoles or hosts that cannot manage async lifetimes. Async APIs fill `bool&`/`std::string&` by reference, so those variables must outlive the request; a second request before completion is rejected or returns immediately. `Stop_Heartbeat()` joins the heartbeat thread. Cloud control must be shut down with `RemoteConfig::GetInstance().Shutdown()`, which has no Chinese wrapper.
 
+```cpp
+JiYanSDK::Enable_SingleThreaded();       // Console or simple host
+JiYanSDK::set_device_id("YOUR-DEVICE-ID");
+// ... init and card validation ...
+if (JiYanSDK::is_locked()) {
+    // Locked after two heartbeat failures: validate the card again
+}
+```
+
 ## Resources and Limits
 
 - Response body limit 8 MiB; request body limit 8 MiB; response headers, chunk lines and trailers share a 32 KiB budget.
@@ -74,4 +83,4 @@ The source uses POSIX sockets, `dladdr` and `/proc/self/maps`, and requires JNI 
 4. Regress card validation, unbind, heartbeat, cloud control and cloud update, watching for 1002/1003.
 5. Keep a rollback build. While old and new clients coexist, never deliver 6/7/8 or 14 to old clients.
 
-Known limits: the SDK does not implement a downloader or UI and does not include the server; cloud-control `Shutdown` has no Chinese wrapper; membership is enforced only by the server. If behavior conflicts with this page, the repository source wins.
+Known limits: the SDK does not implement a downloader or UI and does not include the server; cloud control `Shutdown` has no Chinese wrapper; membership is enforced only by the server. If behavior conflicts with this page, the repository source wins.

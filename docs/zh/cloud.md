@@ -1,6 +1,6 @@
 # 云控与云更新
 
-云控和云更新是两个独立能力：云控从 `cloud-client.php` 拉取远程开关、公告、按钮指令；云更新通过 `Cloudupdate.php` 检查发布文件、取下载地址并回执。两者都要求当前卡密已验证，设备码非空。服务端内部实现不在开源范围内，本页只描述客户端行为，字段语义以源码为准。
+云控和云更新是两个独立能力：云控从 `cloud-client.php` 拉取远程开关、公告、按钮指令；云更新通过 `Cloudupdate.php` 检查发布文件、取下载地址并回执。两者都使用同一账号与应用配置；云控要求当前卡密已验证且设备码非空，云更新在取下载地址时同样要求设备码非空。服务端内部实现不在开源范围内，本页只描述客户端行为，字段语义以源码为准。
 
 ## 云控：绑定
 
@@ -40,7 +40,7 @@ void 绑定云控() {
 
 ## 云控：更新循环
 
-在渲染线程或主循环每帧调用一次 `JiYanSDK_API::云控::更新()`。第一次调用且至少有一个绑定时，客户端启动后台工作线程；未验证、身份未就绪或已 `Shutdown()` 时直接返回，不产生网络请求。工作线程负责拉取与解析，按钮回调在调用 `更新()` 的线程执行。
+在渲染线程或主循环每帧调用一次 `JiYanSDK_API::云控::更新()`。卡密已验证、身份就绪且至少有一个绑定时，第一次调用会启动后台工作线程；未验证、身份未就绪或已 `Shutdown()` 时直接返回，不产生网络请求。工作线程负责拉取与解析，按钮回调在调用 `更新()` 的线程执行。
 
 ```cpp
 void 每帧() {
@@ -78,7 +78,7 @@ RemoteConfig::GetInstance().Shutdown();
 | `CloudUpdate::CheckVersionByMD5(文件名, md5)` | 同步 | 显式传本地 MD5，必须 32 位 hex |
 | `CloudUpdate::CheckVersionByVersionSync(版本)` | 同步 | 服务端比较版本号 |
 
-结果在 `Cloud_Update_Result`：`request_ok`、`message`、`cloud`。`cloud` 包含 `need_update`、`has_file`、`file_id`、`file_name`、`file_size`、`latest_md5`、`version`、`download_url`、`ticket`、`source`、`update_content`。`source` 为 `local` 时表示文件由服务端托管，需要票据；`remote` 表示外链。
+结果在 `Cloud_Update_Result`：`request_ok`、`message`、`cloud`。`cloud` 包含 `need_update`、`has_file`、`file_id`、`file_name`、`file_size`、`latest_md5`、`version`、`download_url`、`ticket`、`source`、`update_content`。`source` 取 `local` 或 `remote`；`local` 要求 `ticket` 与 `md5` 同时存在，客户端按服务端返回的字段校验，不自行推断文件位置。
 
 ```cpp
 Cloud_Download_Result 准备本次下载(const std::string& so_name) {

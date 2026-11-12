@@ -31,7 +31,7 @@
 
 - **加密 0–8**：不加密、AES-256-CBC、自定义 Base64、EnvProto、JiYan-Seal、AES-CBC+HMAC、AES-256-GCM、ChaCha20-Poly1305、XChaCha20-Poly1305
 - **签名 0–14**：MD5 / SHA 系列、HMAC-SHA256、双段 HMAC、带密钥 BLAKE2b
-- **心跳防重放**：独立线程，10 秒级心跳，断线不阻塞渲染
+- **心跳防重放**：独立线程，按服务端下发的间隔（分钟）发送，断线不阻塞渲染
 - **云控**：远程开关、公告、按钮回传、ACK
 - **云更新**：版本比较、文件清单、MD5 校验、下载回执
 - **同行识别 / 在线人数 / 当前库状态**
@@ -65,7 +65,9 @@ JiYanSDK::set_api_url("http://api.xn--0try77c6um82w.cn/api/");
 卡密验证：
 
 ```cpp
-bool ok = JiYanSDK_API::卡密验证::使用卡密("你的卡密");
+bool ok = false;
+std::string msg;
+JiYanSDK_API::卡密验证::使用卡密("你的卡密", ok, msg, nullptr);
 auto info = JiYanSDK_Result::current_response_result;
 ```
 
@@ -92,8 +94,9 @@ auto info = JiYanSDK_Result::current_response_result;
 | 13 | 双段 HMAC（`hmac + "." + hmac(prefix+content+key)[:16]`） |
 | 14 | BLAKE2b-256，`key = SHA256(sign_key)` 原始 32 字节，输出 64 位小写 hex |
 
-密钥口径：先按 Base64 严格解码，成功且 ≥16 字节则用解码结果，否则用原字符串；补 `\0` 或截断到 32 字节。
-加密 5–8、签名 13–14 为服务端会员专享，其余免费；非会员调用会收到服务端提示。
+密钥口径（加密 6/7/8）：先按 Base64 严格解码，成功且 ≥16 字节则用解码结果，否则用原字符串；补 `\0` 或截断到 32 字节。
+加密 1 使用宽松 Base64；加密 3 用 `Account_Uid` 派生密钥。签名 14 的 key 是 `SHA256(sign_key)` 的原始 32 字节。
+加密 5–8、签名 13–14 为服务端会员专享，客户端不做本地判断，非会员会在请求时收到服务端提示。
 
 ## 目录结构
 

@@ -26,6 +26,14 @@ Methods 6, 7 and 8 share `JiYan_Key32`:
 
 In other words, decode first, then pad or truncate. Method 1 is different: it uses a lenient Base64 decode (unknown characters become zero) and then pads or truncates to 32 bytes. Methods 4 and 5 pass the raw `Crypto_Key` string to HMAC-SHA256 without decoding. Method 2 treats `Crypto_Key` as the output alphabet and requires at least 64 bytes; a shorter value reads out of bounds. Method 3 uses `Account_Uid` and ignores `Crypto_Key`.
 
+```cpp
+App_Info app;
+app.App_Pid = "YOUR-APP-ID";
+app.Crypto_Method = 6;                    // 0-8, must match the console
+app.Crypto_Key = "YOUR-CRYPTO-KEY";       // Methods 6/7/8 apply the key32 rule
+JiYanSDK::init(account, app);             // account is a populated Account_Info
+```
+
 ## Wire Format
 
 The request envelope is always:

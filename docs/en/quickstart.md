@@ -1,6 +1,6 @@
 # Quick Start
 
-This page covers the shortest path from zero to a working integration: account configuration, initialization, card-key validation, heartbeat, and the entry points for cloud control and cloud update. Field names and behavior follow the sources under `include/jiyan/`; when the server disagrees with a local assumption, trust the integration test result.
+This page covers the shortest path from zero to a working integration: account configuration, initialization, card key validation, heartbeat, and the entry points for cloud control and cloud update. Field names and behavior follow the sources under `include/jiyan/`; when the server disagrees with a local assumption, trust the integration test result.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ This page covers the shortest path from zero to a working integration: account c
 | `Signature_Method` | `int` | Signature method 0–14; must match the console |
 | `Signature_Key` | `std::string` | Signature key; required by every non-zero method |
 
-`Signature_Method = 0` disables signing and `Signature_Key` may stay empty. Any other method with an empty key fails locally with `Signature_Key 未配置` before a request is sent. Encryption method 2 treats `Crypto_Key` as a 64-character custom Base64 alphabet; method 3 uses `Account_Uid` instead of `Crypto_Key`.
+`Signature_Method = 0` disables signing and `Signature_Key` may stay empty. Any other method with an empty key fails locally with `Signature_Key 未配置` before a request is sent. Encryption method 2 uses the first 64 characters of `Crypto_Key` as a custom Base64 alphabet (the key must be at least 64 bytes); method 3 uses `Account_Uid` instead of `Crypto_Key`.
 
 ## Initialization Order
 
@@ -56,7 +56,7 @@ This page covers the shortest path from zero to a working integration: account c
 | `云控::更新()` | Apply remote values and run pending button commands | Once per frame |
 | `云更新::检查版本 / 获取下载地址` | Cloud update check and download URL retrieval | On a worker thread |
 
-The heartbeat thread starts after a successful login and uses an interval derived from the session fields. Calling `使用卡密` again or unbinding stops the old thread first. Two consecutive heartbeat failures lock the SDK and clear the verified card key, so the user has to validate again.
+The heartbeat thread starts after a successful login and uses an interval derived from the session fields. Calling `使用卡密` again stops the old thread first, and a successful unbind also stops the heartbeat. Two consecutive heartbeat failures lock the SDK and clear the verified card key, so the user has to validate again.
 
 ## Minimal Example
 
@@ -108,7 +108,7 @@ int main()
 
 ## Async Mode and Callbacks
 
-By default, `使用卡密`, `解绑设备`, `心跳` and similar APIs run the request on a detached thread and return immediately. The `bool&` and `std::string&` arguments are written asynchronously: if they are local variables, the references may dangle after the function returns. Keep them static, global or member-owned, or read them only from the completion callback.
+By default, `使用卡密`, `解绑设备`, `查询卡密`, `刷新信息` and similar APIs run the request on a detached thread and return immediately. The `bool&` and `std::string&` arguments are written asynchronously: if they are local variables, the references may dangle after the function returns. Keep them static, global or member-owned, or read them only from the completion callback. `心跳` and `获取公告` use the synchronous path and always complete on the calling thread.
 
 Callbacks run on the request thread, not the UI thread. Do not touch ImGui, Android views or other thread-affine objects directly from a callback; copy the result into a queue and update the UI on the main thread. The global `Request_Completed_Callback` follows the same rule.
 

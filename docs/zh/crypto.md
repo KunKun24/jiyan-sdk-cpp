@@ -26,6 +26,14 @@
 
 也就是说，密钥是“先解码、再补零/截断”，不是先补齐再解码。方式 1 不同：它使用宽松 Base64 解码（未知字符按 0 处理），再把结果补零/截断到 32 字节。方式 4、5 直接把 `Crypto_Key` 原文作为 HMAC-SHA256 的密钥，不做 Base64 解码。方式 2 把 `Crypto_Key` 当作输出字母表，长度至少 64 字节，越界会读到未定义内容。方式 3 使用 `Account_Uid`，`Crypto_Key` 不参与。
 
+```cpp
+App_Info app;
+app.App_Pid = "YOUR-APP-ID";
+app.Crypto_Method = 6;                    // 0-8，与后台一致
+app.Crypto_Key = "YOUR-CRYPTO-KEY";       // 方式 6/7/8 按 key32 口径处理
+JiYanSDK::init(account, app);             // account 为已填好的 Account_Info
+```
+
 ## 报文格式
 
 请求外层 JSON 固定为：

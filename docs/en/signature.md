@@ -53,7 +53,7 @@ key
 9:timestamp=10:1700000000
 ```
 
-The example is in dictionary order, with a newline between fields and a trailing newline after the last one. `scope` is `key`, `user` or `cloud`; cloud-control synchronization uses `cloud_control`, and its response additionally binds nonce, app_id, card_key and device_id.
+The example is in dictionary order, with a newline between fields and a trailing newline after the last one. `scope` is `key`, `user` or `cloud`; cloud control synchronization uses `cloud_control`, and its response additionally binds nonce, app_id, card_key and device_id.
 
 ## Exact Construction for 12, 13 and 14
 
@@ -91,7 +91,7 @@ For methods 1–14 the protocol layer requires a non-empty `Signature_Key`; othe
 
 The response signature covers the string form of `success` (`true` or `false`), `message`, and the raw JSON bytes of `data`, concatenated in that order. `data` must be the bytes from the response body, not a parsed object re-serialized by the client, because field order and escaping would change. The SDK extracts the original bytes with `RawValueOf`, recomputes the signature with the same function and key, and compares in constant time.
 
-When `Signature_Method` is 0 the response check is skipped. Otherwise a mismatch returns code 1003 with the message `响应签名校验失败`. After verification the `rc` is also checked, and cloud-control responses have an additional identity binding check.
+When `Signature_Method` is 0 the response check is skipped. Otherwise a mismatch returns code 1003 with the message `响应签名校验失败`. After verification the `rc` is also checked, and cloud control responses have an additional identity binding check.
 
 ## Debugging
 
@@ -106,4 +106,4 @@ g++ -std=c++17 -O2 -Iinclude/jiyan tests/crypto_vectors.cpp -o crypto_vectors
 ./crypto_vectors
 ```
 
-When the server returns 1003, first determine whether the signature, the `rc`, or the cloud-control identity binding failed. The messages differ but share the same code. If the server log can print the canonical string it recomputed, compare the two byte by byte; that usually locates the problem immediately.
+When the server returns 1003, first determine whether the signature, the `rc`, or the cloud control identity binding failed. The messages differ but share the same code. If the server log can print the canonical string it recomputed, compare the two byte by byte; that usually locates the problem immediately.
